@@ -9,6 +9,7 @@ import StepThree from "./step-three";
 import { FormStep } from "src/types";
 import { useAccount } from "wagmi";
 import Image from "next/image";
+import {backendUrl} from "../../constants";
 
 const formatAddress = (address: string | undefined): string => {
   if (!address) return "";
@@ -67,7 +68,7 @@ const LaunchAI = () => {
     }, 500);
   };
 
-  const handleLaunch = () => {
+  const handleLaunch = async () => {
     setIsLoading(true);
     const formData = {
       name,
@@ -78,13 +79,48 @@ const LaunchAI = () => {
       walletId: "0x23...2124",
     };
 
-    console.log("Launching AI Agent with configuration:", formData);
+    try {
+      const response = await fetch(`${backendUrl}/agents/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agentName: "temp_agentName",
+          userWallet: "0x123...",
+          basename: "raj.base.eth",
+          type: "Default",
+          subType: "Strategy1",
+          goalType: "growth",
+          riskLevel: 2,
+          strategies: "aggressive",
+          compoundedProfits: true,
+          wallet: {
+            walletId: "0x23...2124432",
+            address: "0x1234342..",
+            networkId: "Ethereum2",
+            transactionHash: "0xabc123...",
+            amount: 0.01,
+          },
+        }),
+      });
 
-    setTimeout(() => {
-      toast.success("AI Agent launched successfully!");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("AI Agent successfully created:", data);
+        toast.success("AI Agent launched successfully!");
+        router.push("/dashboard");
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to launch AI Agent:", errorData);
+        toast.error(`Error: ${errorData.error || "Failed to create agent"}`);
+      }
+    } catch (error) {
+      console.error("Error launching AI Agent:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    }
   };
 
   const renderStep = () => {
