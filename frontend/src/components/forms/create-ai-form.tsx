@@ -96,8 +96,8 @@ const LaunchAI = () => {
           strategies: "aggressive",
           compoundedProfits: true,
           wallet: {
-            walletId: "0x23...2124432",
-            address: "0x1234342..",
+            walletId: "0x23...212443245",
+            address: "0x123434245..",
             networkId: "Ethereum2",
             transactionHash: "0xabc123...",
             amount: 0.01,
