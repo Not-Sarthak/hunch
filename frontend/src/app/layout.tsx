@@ -7,6 +7,8 @@ import dynamic from "next/dynamic";
 import Navbar from "src/components/header/navbar";
 import Footer from "src/components/footer/footer";
 import { Toaster } from "sonner";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { OktoProvider, BuildType } from "okto-sdk-react";
 
 const OnchainProviders = dynamic(
   () => import("src/components/OnchainProviders"),

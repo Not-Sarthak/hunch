@@ -1,51 +1,49 @@
-import {
-  ConnectWallet,
-  Wallet,
-  WalletDropdown,
-  WalletDropdownLink,
-  WalletDropdownDisconnect,
-  ConnectWalletText,
-} from "@coinbase/onchainkit/wallet";
-import {
-  Address,
-  Avatar,
-  Name,
-  Identity,
-  EthBalance,
-} from "@coinbase/onchainkit/identity";
-import React from "react";
+import { useOkto } from "okto-sdk-react";
+import { GoogleLogin } from "@react-oauth/google";
+import React, { useState } from "react";
+import Button from "./button/button";
 
 export default function Header({ text }: { text?: string | React.ReactNode }) {
+  const { authenticate, showWidgetModal } = useOkto();
+  const [authToken, setAuthToken] = useState(null);
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    const idToken = credentialResponse.credential;
+    authenticate(idToken, (authResponse: any, error: any) => {
+      if (authResponse) {
+        setAuthToken(authResponse.auth_token);
+        console.log(
+          "Authenticated successfully, auth token:",
+          authResponse.auth_token
+        );
+      } else if (error) {
+        console.error("Authentication error:", error);
+      }
+    });
+  };
+
+  const open = async () => {
+    try {
+      await showWidgetModal();
+    } catch (error) {
+      console.error("Failed to open widget modal", error);
+    }
+  };
   return (
-    <div className="flex justify-end">
-      <div className="flex space-x-2">
-        <Wallet>
-          <ConnectWallet>
-            <ConnectWalletText className="font-light">
-              {text ? text : "Connect Wallet"}
-            </ConnectWalletText>
-            <Avatar className="w-6 h-6" />
-            <Name className="text-white" />
-          </ConnectWallet>
-          <WalletDropdown>
-            <Identity className="px-4 pb-2" hasCopyAddressOnClick={true}>
-              <Avatar />
-              <Name />
-              <Address />
-              <EthBalance />
-            </Identity>
-            <WalletDropdownLink
-              icon="wallet"
-              href="https://keys.coinbase.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Wallet
-            </WalletDropdownLink>
-            <WalletDropdownDisconnect />
-          </WalletDropdown>
-        </Wallet>
-      </div>
+    <div className="flex items-center gap-4">
+      <Button
+        className="!font-light !text-sm !bg-gradient-to-b !from-[#26262a] !to-[#16151a] !border !border-[#1e1e21] !min-w-16"
+        label="Show Modal"
+        onClick={open}
+      />
+      {!authToken ? (
+        <GoogleLogin
+          onSuccess={handleGoogleLogin}
+          onError={() => console.error("Login Failed")}
+        />
+      ) : (
+        <button onClick={showWidgetModal}>Show Widget Modal</button>
+      )}
     </div>
   );
 }

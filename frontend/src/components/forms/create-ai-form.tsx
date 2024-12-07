@@ -71,6 +71,15 @@ const LaunchAI = () => {
 
   const handleLaunch = async () => {
     setIsLoading(true);
+
+    const portfolioResponse = await axios.post(
+      "https://sandbox-api.okto.tech/api/v1/portfolio",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_OKTO_CLIENT_API_KEY}`,
+        },
+      }
+    );
     const formData = {
       name,
       goal,
@@ -78,6 +87,7 @@ const LaunchAI = () => {
       selectedStrategies,
       compoundProfits,
       walletId: "0x23...2124",
+      portfolio: portfolioResponse.data,
     };
 
     console.log("Launching AI Agent with configuration:", formData);
@@ -101,19 +111,19 @@ const LaunchAI = () => {
     const explorerUrl = `https://sepolia.basescan.org/tx/${faucetHash}`;
 
     setTimeout(() => {
-        toast.success(
-          <>
-            AI Agent launched successfully!{" "}
-            <a
-              href={explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 underline"
-            >
-              View Transaction
-            </a>
-          </>
-        )
+      toast.success(
+        <>
+          AI Agent launched successfully!{" "}
+          <a
+            href={explorerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline"
+          >
+            View Transaction
+          </a>
+        </>
+      );
       setIsLoading(false);
       router.push("/dashboard");
     }, 1000);
