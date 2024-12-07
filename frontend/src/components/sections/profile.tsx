@@ -4,6 +4,8 @@ import farhatImage from "../../assets/farhat.png";
 import baseAgentImage from "../../assets/base-agent.png";
 import Image, { StaticImageData } from "next/image";
 import { useAccount } from "wagmi";
+import { AttestationService } from "src/true-network/attestations";
+import { useReputation } from "src/hooks/useReputation";
 
 interface Particle {
   x: number;
@@ -68,6 +70,96 @@ const ThreeDotsIcon = () => (
     />
   </svg>
 );
+
+// Reputation Test Component
+const ReputationTest = () => {
+  const address = 'ijp8NW57u3hwkwxh3Lcfg5JpdoBZefoSMMa3BXF6VWz2kXM';
+  const [testResult, setTestResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const testAttestation = async () => {
+    if (!address) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Test creator attestation
+      const creatorData = await AttestationService.attestCreator(address, {
+        totalPosts: 1,
+        successfulPosts: 1,
+        totalRevenue: 100,
+        engagementRate: 50,
+        platformFollowers: 1000
+      });
+
+      // Test curator attestation
+      const curatorData = await AttestationService.attestCurator(address, {
+        postsFound: 1,
+        successfulPicks: 1,
+        totalValue: 100,
+        avgReturn: 50,
+        responseTime: 10
+      });
+
+      // Test user attestation
+      const userData = await AttestationService.attestUser(address, {
+        totalMints: 1,
+        successfulMints: 1,
+        aiUsage: 50,
+        riskScore: 50,
+        investment: 100,
+        returns: 150
+      });
+
+      // Get all attestations
+      const allAttestations = await AttestationService.getAttestations(address);
+
+      setTestResult({
+        creator: creatorData,
+        curator: curatorData,
+        user: userData,
+        all: allAttestations
+      });
+
+    } catch (err) {
+      console.error('Test failed:', err);
+      setError(err instanceof Error ? err.message : 'Test failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 p-4 bg-[#111015] rounded-lg border border-[#1C1C1F]">
+      <h2 className="text-white text-xl mb-4">Reputation System Test</h2>
+      
+      <button
+        onClick={testAttestation}
+        disabled={loading || !address}
+        className="bg-[#6FDBB5] text-black px-4 py-2 rounded-lg disabled:opacity-50"
+      >
+        {loading ? 'Testing...' : 'Run Test'}
+      </button>
+
+      {error && (
+        <div className="mt-4 text-red-500">
+          {error}
+        </div>
+      )}
+
+      {testResult && (
+        <div className="mt-4">
+          <h3 className="text-white mb-2">Test Results:</h3>
+          <pre className="bg-[#16151A] p-4 rounded overflow-auto text-[#737373] text-sm">
+            {JSON.stringify(testResult, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PostCard = ({ post }: { post: Post }) => (
   <div className="bg-[#111015] rounded-lg border border-[#1C1C1F] p-4">
@@ -169,42 +261,7 @@ const InvestmentLogsTab = () => {
       ens: "farhat.base.eth",
       timestamp: "2mins ago",
       amount: 0.01,
-    },
-    // {
-    //   profileImage: baseAgentImage,
-    //   username: "farhat",
-    //   ens: "farhat.base.eth",
-    //   timestamp: "2mins ago",
-    //   amount: 12.3,
-    // },
-    // {
-    //   profileImage: baseAgentImage,
-    //   username: "farhat",
-    //   ens: "farhat.base.eth",
-    //   timestamp: "2mins ago",
-    //   amount: 12.3,
-    // },
-    // {
-    //   profileImage: baseAgentImage,
-    //   username: "farhat",
-    //   ens: "farhat.base.eth",
-    //   timestamp: "2mins ago",
-    //   amount: 12.3,
-    // },
-    // {
-    //   profileImage: baseAgentImage,
-    //   username: "farhat",
-    //   ens: "farhat.base.eth",
-    //   timestamp: "2mins ago",
-    //   amount: 12.3,
-    // },
-    // {
-    //   profileImage: baseAgentImage,
-    //   username: "farhat",
-    //   ens: "farhat.base.eth",
-    //   timestamp: "2mins ago",
-    //   amount: 12.3,
-    // },
+    }
   ];
 
   return (
@@ -256,6 +313,29 @@ const RepScore = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const animationFrameId = useRef<number>();
+  const address = 'ijp8NW57u3hwkwxh3Lcfg5JpdoBZefoSMMa3BXF6VWz2kXM';
+  const [reputationData, setReputationData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReputation = async () => {
+      if (!address) return;
+      console.log(address);
+      
+      try {
+        setLoading(true);
+        const data = await AttestationService.getAttestations(address);
+        console.log(data)
+        setReputationData(data);
+      } catch (error) {
+        console.error('Error fetching reputation:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReputation();
+  }, [address]);
 
   const createParticles = (canvas: HTMLCanvasElement) => {
     const particlesArray: Particle[] = [];
@@ -341,7 +421,7 @@ const RepScore = () => {
           <span>Increase your reputation score by creating markets. </span>
         </div>
       </div>
-      <p className="z-10 font-bold text-[#6FDBB5] text-5xl pt-1.5">89</p>
+      <p className="z-10 font-bold text-[#6FDBB5] text-5xl pt-1.5">{reputationData?.score || 50}</p>
     </div>
   );
 };
