@@ -2,6 +2,7 @@
 
 import LandingPageSection from "src/components/sections/landing";
 import { motion } from "framer-motion";
+import React from "react";
 
 export default function Page() {
   return (
